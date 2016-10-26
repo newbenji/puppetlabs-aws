@@ -48,6 +48,7 @@ Puppet::Type.type(:ec2_launchconfiguration).provide(:v2, :parent => PuppetX::Pup
         device_name: mapping.device_name,
         volume_size: mapping.ebs.volume_size,
         volume_type: mapping.ebs.volume_type || 'standard',
+        delete_on_termination: mapping.ebs.delete_on_termination,
       }
       device
     end
