@@ -44,18 +44,28 @@ Puppet::Type.type(:s3_bucket).provide(:v2, :parent => PuppetX::Puppetlabs::Aws) 
   end
 
   def create
-    Puppet.debug("Creating S3 Bucket #{name}")
-    s3_client.create_bucket({bucket: name})
+    Puppet.debug("Creating S3 Bucket #{name} in #{resource[:region]}")
+    # AWS doesn't allow to use location constraint if bucket goes to default region
+    if resource[:region] == 'us-east-1' 
+      s3_client(resource[:region]).create_bucket({bucket: name})
+    else
+      s3_client(resource[:region]).create_bucket({
+        bucket: name,
+        create_bucket_configuration: {
+            location_constraint: resource[:region],
+          }, 
+       })
+    end
   end
 
   def destroy
     Puppet.debug("Destroying S3 Bucket #{name}")
-    s3_client.delete_bucket({bucket: name})
+    s3_client(resource[:region]).delete_bucket({bucket: name})
   end
 
   def policy=(value)
     Puppet.debug('Replacing bucket policy')
-    s3_client.put_bucket_policy({
+    s3_client(resource[:region]).put_bucket_policy({
       bucket: @property_hash[:name],
       policy: value
     })
