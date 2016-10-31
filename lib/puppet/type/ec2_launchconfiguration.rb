@@ -60,6 +60,14 @@ Puppet::Type.newtype(:ec2_launchconfiguration) do
     end
   end
 
+  newproperty(:iam_instance_profile) do
+    desc 'The iam profile to use for the instances.'
+    validate do |value|
+      fail 'image_id should not contain spaces' if value =~ /\s/
+      fail 'image_id should be a String' unless value.is_a?(String)
+    end
+  end
+  
   newparam(:vpc) do
     desc 'A hint to specify the VPC, useful when detecting ambiguously named security groups like default.'
     validate do |value|

@@ -57,6 +57,7 @@ Puppet::Type.type(:ec2_launchconfiguration).provide(:v2, :parent => PuppetX::Pup
       instance_type: config.instance_type,
       image_id: config.image_id,
       key_name: config.key_name,
+      iam_instance_profile: config.iam_instance_profile,
       ensure: :present,
       region: region,
       spot_price: config.spot_price,
@@ -100,6 +101,7 @@ Puppet::Type.type(:ec2_launchconfiguration).provide(:v2, :parent => PuppetX::Pup
       image_id: resource[:image_id],
       security_groups: group_ids,
       instance_type: resource[:instance_type],
+      iam_instance_profile: resource[:iam_instance_profile],
       user_data: data,
     }
 
