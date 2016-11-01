@@ -162,6 +162,14 @@ Puppet::Type.newtype(:ec2_instance) do
     end
   end
 
+  newproperty(:secondary_private_ip_address_count) do
+    desc 'The number of secondary IP addresses to assign to the network interface. You can\'t specify this parameter when also specifying private IP addresses.'
+    defaultto :nil
+    validate do |value|
+      value.to_i == should.to_i
+    end
+  end
+    
   newproperty(:public_ip_address) do
     desc 'The public IP address for the instance.'
     validate do |value|

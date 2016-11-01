@@ -244,13 +244,14 @@ Found #{matching_groups.length}:
     config
   end
 
-  def config_with_public_interface(config)
-    if resource[:associate_public_ip_address] == :true
+  def config_with_interface(config)
+    if resource[:associate_public_ip_address] == :true or resource[:secondary_private_ip_address_count]
       config[:network_interfaces] = [{
         device_index: 0,
         subnet_id: config[:subnet_id],
         groups: config[:security_group_ids],
-        associate_public_ip_address: true,
+        associate_public_ip_address: resource[:associate_public_ip_address] == :true ? true: false,
+        secondary_private_ip_address_count: resource[:secondary_private_ip_address_count],
       }]
       config[:subnet_id] = nil
       config[:security_group_ids] = nil
@@ -286,12 +287,11 @@ Found #{matching_groups.length}:
           enabled: resource[:monitoring].to_s,
         }
       }
-
       config = config_with_key_details(config)
       config = config_with_devices(config)
       config = config_with_network_details(config)
       config = config_with_private_ip(config)
-      config = config_with_public_interface(config)
+      config = config_with_interface(config)
 
       response = ec2.run_instances(config)
 
