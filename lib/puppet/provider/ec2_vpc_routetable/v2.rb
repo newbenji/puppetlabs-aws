@@ -104,6 +104,8 @@ Puppet::Type.type(:ec2_vpc_routetable).provide(:v2, :parent => PuppetX::Puppetla
         nat_gateway_response = ec2.describe_nat_gateways.data.nat_gateways.select { |gateway| gateway.nat_gateway_addresses.first.public_ip == route['gateway'] || gateway.nat_gateway_addresses.first.allocation_id == route['gateway'] }
         found_nat_gateway = !nat_gateway_response.empty?
       end
+      
+
       gateway_id = if found_internet_gateway
                      internet_gateway_response.data.internet_gateways.first.internet_gateway_id
                    elsif found_vpn_gateway
@@ -113,12 +115,31 @@ Puppet::Type.type(:ec2_vpc_routetable).provide(:v2, :parent => PuppetX::Puppetla
                    else  
                      nil
                    end
+      
+      unless gateway_id
+        instance_response = ec2.describe_instances(filters: [
+          {name: 'tag:Name', values: [route['gateway']]},
+          {name: 'instance-state-name', values: ['pending', 'running']}
+        ])
+        instance_ids = instance_response.reservations.map(&:instances).flatten.map(&:instance_id)
+        found_instance = !instance_ids.empty?
+      end
+      
+      instance_id = if found_instance
+                      instance_ids.first
+                    else
+                      nil
+                    end
 
+      if instance_id
+        ec2.wait_until(:instance_running, instance_ids: [instance_id])
+      end        
       ec2.create_route(
         route_table_id: id,
         destination_cidr_block: route['destination_cidr_block'],
         gateway_id: gateway_id,
-      ) if gateway_id
+        instance_id: instance_id,
+      ) if gateway_id||instance_id
     end
     @property_hash[:ensure] = :present
   end
