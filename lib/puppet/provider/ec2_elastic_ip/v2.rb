@@ -66,11 +66,14 @@ Puppet::Type.type(:ec2_elastic_ip).provide(:v2, :parent => PuppetX::Puppetlabs::
       Puppet.warning "Multiple instances found named #{resource[:instance]}, using #{instance_ids.first}"
     end
 
+    primary_private_ip_array =  response.data.reservations.map(&:instances).flatten.first.network_interfaces.first.private_ip_addresses.select { |ip| ip[:primary].to_s == resource[:primary].to_s }
+
     config = if @property_hash[:domain] == 'vpc'
       {
         instance_id: instance_ids.first,
         allocation_id: @property_hash[:allocation_id],
         allow_reassociation: true,
+        private_ip_address: primary_private_ip_array.first.private_ip_address
       }
     else
       {

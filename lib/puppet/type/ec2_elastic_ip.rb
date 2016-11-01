@@ -35,6 +35,12 @@ Puppet::Type.newtype(:ec2_elastic_ip) do
     end
   end
 
+  newproperty(:primary) do
+    desc 'Whether to attach Elastic IP to primary or secondary address'
+    defaultto :true
+    newvalues(:true, :false)
+  end
+
   autorequire(:ec2_instance) do
     self[:instance]
   end
