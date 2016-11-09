@@ -119,14 +119,14 @@ Puppet::Type.type(:ec2_vpc_routetable).provide(:v2, :parent => PuppetX::Puppetla
         Puppet.debug("nat_gateways: #{nat_gateway_response]")
         found_nat_gateway = !nat_gateway_response.empty?
       end
-      
       nat_gateway_id = if found_nat_gateway
                          nat_gateway_response.first.nat_gateway_id
                        else
                          nil
                        end
       end
-                   
+
+      Puppet.debug("Gateway : #{gateway_id} Nat: #{nat_gateway_id}")          
       unless gateway_id or nat_gateway_id
         instance_response = ec2.describe_instances(filters: [
           {name: 'tag:Name', values: [route['gateway']]},
