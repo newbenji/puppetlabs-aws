@@ -107,8 +107,6 @@ Puppet::Type.type(:ec2_vpc_routetable).provide(:v2, :parent => PuppetX::Puppetla
                      internet_gateway_response.data.internet_gateways.first.internet_gateway_id
                    elsif found_vpn_gateway
                      vpn_gateway_response.data.vpn_gateways.first.vpn_gateway_id
-                   elsif found_nat_gateway
-                     nat_gateway_response.first.nat_gateway_id
                    else  
                      nil
                    end
@@ -116,11 +114,13 @@ Puppet::Type.type(:ec2_vpc_routetable).provide(:v2, :parent => PuppetX::Puppetla
       unless gateway_id
         nat_gateway_response = ec2.describe_nat_gateways.data.nat_gateways.select { |gateway| gateway.nat_gateway_addresses.first.public_ip == route['gateway'] || gateway.nat_gateway_addresses.first.allocation_id == route['gateway'] }
         found_nat_gateway = !nat_gateway_response.empty?
-        nat_gateway_id = if found_instance
-                  nat_gateway_response.first.nat_gateway_id
-                else
-                  nil
-                end
+      end
+      
+      nat_gateway_id = if found_nat_gateway
+                         nat_gateway_response.first.nat_gateway_id
+                       else
+                         nil
+                       end
       end
                    
       unless gateway_id or nat_gateway_id
