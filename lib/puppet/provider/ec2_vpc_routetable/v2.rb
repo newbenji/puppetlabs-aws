@@ -124,7 +124,7 @@ Puppet::Type.type(:ec2_vpc_routetable).provide(:v2, :parent => PuppetX::Puppetla
                        else
                          nil
                        end
-      end
+     
 
       Puppet.debug("Gateway : #{gateway_id} Nat: #{nat_gateway_id}")          
       unless gateway_id or nat_gateway_id
@@ -151,7 +151,7 @@ Puppet::Type.type(:ec2_vpc_routetable).provide(:v2, :parent => PuppetX::Puppetla
         nat_gateway_id: nat_gateway_id,
         gateway_id: gateway_id,
         instance_id: instance_id,
-      ) if gateway_id||instance_id
+      ) if gateway_id||instance_id||nat_gateway_id
     end
     @property_hash[:ensure] = :present
   end
