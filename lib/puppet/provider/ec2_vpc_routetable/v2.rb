@@ -100,23 +100,32 @@ Puppet::Type.type(:ec2_vpc_routetable).provide(:v2, :parent => PuppetX::Puppetla
         found_vpn_gateway = !vpn_gateway_response.data.vpn_gateways.empty?
       end
 
-      unless found_internet_gateway or found_vpn_gateway
-        nat_gateway_response = ec2.describe_nat_gateways.data.nat_gateways.select { |gateway| gateway.nat_gateway_addresses.first.public_ip == route['gateway'] || gateway.nat_gateway_addresses.first.allocation_id == route['gateway'] }
-        found_nat_gateway = !nat_gateway_response.empty?
-      end
+      
       
 
       gateway_id = if found_internet_gateway
                      internet_gateway_response.data.internet_gateways.first.internet_gateway_id
                    elsif found_vpn_gateway
                      vpn_gateway_response.data.vpn_gateways.first.vpn_gateway_id
-                   elsif found_nat_gateway
-                     nat_gateway_response.first.nat_gateway_id
                    else  
                      nil
                    end
       
       unless gateway_id
+        nat_gateway_response = ec2.describe_nat_gateways(filter: [
+          {name: 'state', values: ['pending', 'available']}
+          ]).data.nat_gateways.select { |gateway| gateway.nat_gateway_addresses.first.public_ip == route['gateway'] || gateway.nat_gateway_addresses.first.allocation_id == route['gateway'] }
+         
+        found_nat_gateway = !nat_gateway_response.empty?
+      end
+      nat_gateway_id = if found_nat_gateway
+                         nat_gateway_response.first.nat_gateway_id
+                       else
+                         nil
+                       end
+     
+
+      unless gateway_id or nat_gateway_id
         instance_response = ec2.describe_instances(filters: [
           {name: 'tag:Name', values: [route['gateway']]},
           {name: 'instance-state-name', values: ['pending', 'running']}
@@ -133,13 +142,17 @@ Puppet::Type.type(:ec2_vpc_routetable).provide(:v2, :parent => PuppetX::Puppetla
 
       if instance_id
         ec2.wait_until(:instance_running, instance_ids: [instance_id])
-      end        
+      end
+      if nat_gateway_id
+        ec2.wait_until(:nat_gateway_available, nat_gateway_ids: [nat_gateway_id])
+      end      
       ec2.create_route(
         route_table_id: id,
         destination_cidr_block: route['destination_cidr_block'],
+        nat_gateway_id: nat_gateway_id,
         gateway_id: gateway_id,
         instance_id: instance_id,
-      ) if gateway_id||instance_id
+      ) if gateway_id||instance_id||nat_gateway_id
     end
     @property_hash[:ensure] = :present
   end
