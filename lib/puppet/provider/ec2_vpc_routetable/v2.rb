@@ -116,7 +116,7 @@ Puppet::Type.type(:ec2_vpc_routetable).provide(:v2, :parent => PuppetX::Puppetla
         nat_gateway_response = ec2.describe_nat_gateways.(filters: [
           {name: 'state', values: ['pending', 'available']}
           ]).data.nat_gateways.select { |gateway| gateway.nat_gateway_addresses.first.public_ip == route['gateway'] || gateway.nat_gateway_addresses.first.allocation_id == route['gateway'] }
-        Puppet.debug("nat_gateways: #{nat_gateway_response]")
+        Puppet.debug("nat_gateways: #{nat_gateway_response}")
         found_nat_gateway = !nat_gateway_response.empty?
       end
       nat_gateway_id = if found_nat_gateway
