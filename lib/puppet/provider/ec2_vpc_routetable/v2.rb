@@ -148,7 +148,7 @@ Puppet::Type.type(:ec2_vpc_routetable).provide(:v2, :parent => PuppetX::Puppetla
       ec2.create_route(
         route_table_id: id,
         destination_cidr_block: route['destination_cidr_block'],
-        nat_gateway_id: nat_gateway_id
+        nat_gateway_id: nat_gateway_id,
         gateway_id: gateway_id,
         instance_id: instance_id,
       ) if gateway_id||instance_id
