@@ -125,10 +125,10 @@ Puppet::Type.type(:iam_policy_attachment).provide(:v2, :parent => PuppetX::Puppe
     @property_hash[:roles].each {|role|
       unless Array(value).flatten.include? role
         Puppet.info("Detaching role #{role} from policy #{resource[:name]}")
-        iam_client.detach_role_policy({
-          policy_arn: @property_hash[:arn],
-          role_name: role,
-        })
+       # iam_client.detach_role_policy({
+       #   policy_arn: @property_hash[:arn],
+       #   role_name: role,
+       # })
       end
     }
   end
